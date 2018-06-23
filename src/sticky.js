@@ -201,13 +201,13 @@ class Sticky {
 
 export default {
   inserted (el, bind, vnode) {
-    if (typeof bind.value !== 'undefined' && !bind.value) {
+    if (typeof bind.value.disable === 'undefined' || bind.value) {
       el[namespace] = new Sticky(el, vnode.context)
       el[namespace].doBind()
     }
   },
   unbind (el, bind, vnode) {
-    if (typeof bind.value !== 'undefined' && !bind.value) {    
+    if (typeof bind.value === 'undefined' || bind.value) {    
       el[namespace].doUnbind()
     }
   }
