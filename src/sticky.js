@@ -37,8 +37,10 @@ class Sticky {
 
     const offset = this.getAttribute('sticky-offset') || {}
     const side = this.getAttribute('sticky-side') || 'top'
+    const zIndex = this.getAttribute('stick-z-index') || '50'
 
     this.options = {
+      zIndex: zIndex,
       topOffset: Number(offset.top) || 0,
       bottomOffset: Number(offset.bottom) || 0,
       shouldTopSticky: side === 'top' || side === 'both',
@@ -124,7 +126,7 @@ class Sticky {
       bottom: 'auto',
       left: 'auto',
       width: 'auto',
-      zIndex: '10'
+      zIndex: this.options.zIndex
     }
     const placeholderClassName = {'vue-sticky-placeholder': true}
     const elClassName = {
