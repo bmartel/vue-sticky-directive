@@ -9,7 +9,7 @@ const events = [
   'load'
 ]
 
-const batchStyle = (el, style, className) => {
+const batchStyle = (el, style = {}, className = {}) => {
   for (let k in style) {
     el.style[k] = style[k]
   }
@@ -47,6 +47,9 @@ class Sticky {
   }
 
   doBind () {
+    if (this.unsubscribers.length > 0) {
+      return
+    }
     const {el, vm} = this
     vm.$nextTick(() => {
       this.placeholderEl = document.createElement('div')
@@ -64,6 +67,8 @@ class Sticky {
 
   doUnbind () {
     this.unsubscribers.forEach(fn => fn())
+    this.unsubscribers = []
+    this.resetElement()
   }
 
   update () {
@@ -144,7 +149,7 @@ class Sticky {
       elStyle.bottom = this.options.bottomOffset + 'px'
       elStyle.left = this.state.xOffset + 'px'
       elStyle.width = this.state.width + 'px'
-      const topLimit = this.state.containerElRect = (window.innerHeight - this.state.containerElRect.top) - this.state.height - this.options.bottomOffset - this.options.topOffset
+      const topLimit = (window.innerHeight - this.state.containerElRect.top) - this.state.height - this.options.bottomOffset - this.options.topOffset
       if (topLimit < 0) {
         elStyle.bottom = topLimit + this.options.bottomOffset + 'px'
       }
@@ -156,6 +161,13 @@ class Sticky {
 
     batchStyle(this.el, elStyle, elClassName)
     batchStyle(this.placeholderEl, placeholderStyle, placeholderClassName)
+  }
+
+  resetElement () {
+    ['position', 'top', 'bottom', 'left', 'width', 'zIndex'].forEach((attr) => {
+      this.el.style.removeProperty(attr)
+    })
+    this.placeholderEl.parentNode.removeChild(this.placeholderEl)
   }
 
   getContainerEl () {
@@ -207,8 +219,21 @@ export default {
     }
   },
   unbind (el, bind, vnode) {
-    if (typeof bind.value === 'undefined' || bind.value) {    
+    if (el[namespace]) {
       el[namespace].doUnbind()
+      el[namespace] = undefined
+    }
+  },
+  componentUpdated (el, bind, vnode) {
+    if (typeof bind.value === 'undefined' || bind.value) {
+      if (!el[namespace]) {
+        el[namespace] = new Sticky(el, vnode.context)
+      }
+      el[namespace].doBind()
+    } else {
+      if (el[namespace]) {
+        el[namespace].doUnbind()        
+      }
     }
   }
 }
